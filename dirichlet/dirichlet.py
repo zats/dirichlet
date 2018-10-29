@@ -19,7 +19,7 @@ import scipy as sp
 import scipy.stats as stats
 from scipy.special import (psi, polygamma, gammaln)
 from numpy import (array, asanyarray, ones, arange, log, diag, vstack, exp,
-        asarray, ndarray, zeros, isscalar)
+        asarray, ndarray, zeros, isscalar, var)
 from numpy.linalg import norm
 import numpy as np
 from . import simplex
@@ -40,7 +40,9 @@ except NameError:
 
 __all__ = [
     'pdf',
-    'test',
+    'test_same_distribution',
+    'test_uniform',
+    'plot',
     'mle',
     'meanprecision',
     'loglikelihood',
@@ -48,7 +50,7 @@ __all__ = [
 
 euler = -1*psi(1) # Euler-Mascheroni constant
 
-def test(D1, D2, method='meanprecision', maxiter=None):
+def test_same_distribution(D1, D2, method='meanprecision', maxiter=None):
     '''Test for statistical difference between observed proportions.
 
     Parameters
@@ -78,8 +80,8 @@ def test(D1, D2, method='meanprecision', maxiter=None):
         MLE parameters for the Dirichlet distributions fit to 
         ``D1`` and ``D2`` together, ``D1``, and ``D2``, respectively.'''
 
-    N1, K1 = D1.shape
-    N2, K2 = D2.shape
+    N1, K1 = np.atleast_2d(D1).shape
+    N2, K2 = np.atleast_2d(D2).shape
     if K1 != K2:
         raise Exception("D1 and D2 must have the same number of columns")
 
@@ -91,6 +93,137 @@ def test(D1, D2, method='meanprecision', maxiter=None):
     D = 2 * (loglikelihood(D1, a1) + loglikelihood(D2, a2)
          - loglikelihood(D0, a0))
     return (D, stats.chi2.sf(D, K1), a0, a1, a2)
+
+def test_uniform(D, do_MWM_correction=True, tol=1e-7, method='meanprecision', maxiter=None):
+    '''
+    Likelihood-ratio test where the null hypothesis is that all means are equal. We implement a Bartlett-type correction for small sample in Morris Water Maze data where K=4.
+    
+    Parameters
+    ----------
+    D : array of size (N,K)
+        N is the number of samples and K is the number of categories. Each row of the matrices must add up to 1.
+    do_MWM_correction : bool
+        If True and if K=4, implement the approximate Bartlett-type correction for the likelihood-ratio statistic.
+    method : string
+        One of ``'fixedpoint'`` and ``'meanprecision'``, designates method by
+        which to find MLE Dirichlet distribution. Default is
+        ``'meanprecision'``, which is faster.
+    maxiter : int
+        Maximum number of iterations to take calculations. Default is
+        ``sys.maxint``.
+
+    Returns
+    -------
+    lr : float
+        Test statistic, which is ``-2 * log`` of likelihood ratios, corrected if K=4
+        and do_MWM_correction is True.
+    p : float
+        p-value of test.
+    a0 : array
+    a1 : array
+        MLE parameters for the Dirichlet distributions fit to the data under the null
+        hypothesis H0 (all parameters of the Dirichlet distribution are equal) and
+        the alternative hypothesis (no constraint).
+    '''
+    
+        
+    N, K = D.shape
+    logp = log(D).mean(axis=0)
+    
+    a0 = ((K-1.)/(K**2 * var(D))-1.)/K
+    a0 = a0 * ones(K)
+    
+    # print "Initial guess ", a0
+    a0 = _fit_s(D, a0, logp, tol=tol)
+    
+    a1 = mle(D, method=method, maxiter=maxiter)
+    
+    lr = 2 * (loglikelihood(D, a1) - loglikelihood(D, a0))
+    
+    if do_MWM_correction :
+        if not K == 4:
+            raise Exception("The Bartlett correction is only implemented for K=4.")
+        lr *= 3./(3.+5.9*N**(-1.4))
+    
+    return (lr, stats.chi2.sf(lr, K-1), a1, a0)
+
+def plot(data, label=None, do_test_uniform=True, do_MWM_correction=True, save_figure=None):
+    '''
+    Plot constant-sum data as stacked bars.
+    
+    Parameters
+    ----------
+    data : array of size (N,K)
+        N is the number of samples and K is the number of categories. Each row of the matrices must add up to 1.
+    label : string
+        Name of the group.
+    do_test_uniform : bool
+        Whether to perform the unifornity test and show its result (p-value and parameters with approximate error bars).
+    do_MWM_correction : bool
+        Whether to correct the uniformity test statistic for small sample with MWM data.
+    save_figure : string
+        If not None, path and name of the figure file to be saved.
+    
+    '''
+    
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    import scipy
+    
+    def p2star(p):
+        bins = [0., 0.001, 0.01, 0.05, 1.]
+        i = np.digitize(p, bins[::-1])-1
+        s = ''
+        if i==0:
+            return '(-)'
+        for _ in range(i):
+            s += '*'
+        return '('+s+')'
+    
+    n, k = data.shape
+    
+    # Create the figure
+    colors = mpl.cm.YlOrRd_r(np.linspace(0.1,.8,k))
+    fig = plt.figure(figsize=(2,3))
+    fig.subplots_adjust(left=.1, right=.8, bottom=0.05, top=1.)
+    
+    pval_cor = []
+    
+    # Perform the uniformity test
+    if do_test_uniform:
+        tu = test_uniform(data, do_MWM_correction=do_MWM_correction)
+        amle = tu[2]
+        pval = tu[1]
+        # Lower bounds on error bars from inverse Fisher information
+        vararray = 1./((_trigamma(amle)-_trigamma(amle.sum()))*n)
+
+    ind = np.linspace(-.5,+.5,n)
+    w = (ind[1]-ind[0])*0.9
+    plt.bar(ind, data[:,0], w, color=colors[0])
+    for j in range(1,k):
+        plt.bar(ind, data[:,j], w, bottom=np.sum(data[:,:j], axis=1), color=colors[j])
+        if do_test_uniform:
+            plt.hlines(np.sum(amle[:j]/np.sum(amle)), ind[0]-w, ind[-1]+w, color='k', linestyles='--')
+            plt.errorbar(0, np.sum(amle[:j]/np.sum(amle)), yerr=np.sqrt(vararray[j])/np.sum(amle), color='k', capsize=3)
+
+    plt.ylim(-1e-2,1.2)
+    plt.xlim(-.5-w,.5+w)
+    
+    # Add grid in background
+    for y in np.linspace(0,1,k+1):
+        plt.axhline(y=y, c='0.8', ls='--', lw=1, zorder=-32)
+        plt.text(ind[-1]+1.2*w, y, '%.2g'%y, color='0.8', va='center')
+    
+    if label is not None:
+        plt.text(0, 1.12, label, va='center', ha='center', fontsize=12)
+
+    if do_test_uniform:
+        plt.text(0, 1.05, ('$p_{\\rm Dirichlet}=%.2g$ '%pval)+p2star(pval), va='center', ha='center', fontsize=8)
+        
+    plt.axis('off')
+        
+    if save_figure is not None:
+        plt.savefig(save_figure)
 
 def pdf(alphas):
     '''Returns a Dirichlet PDF function'''

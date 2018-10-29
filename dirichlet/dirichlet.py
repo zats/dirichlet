@@ -223,7 +223,7 @@ def plot(data, label=None, do_test_uniform=True, do_MWM_correction=True, save_fi
     plt.axis('off')
         
     if save_figure is not None:
-        plt.savefig(save_figure)
+        plt.savefig(save_figure, dpi=300)
 
 def pdf(alphas):
     '''Returns a Dirichlet PDF function'''

@@ -13,4 +13,5 @@ Use
 
 See the [example](https://github.com/xuod/dirichlet/blob/master/example/example.ipynb) jupyter notebook to run the test and produce plots.
 
-![plop](https://github.com/xuod/dirichlet/blob/master/example/3Tg.png "3Tg.png")
+![plop](https://github.com/xuod/dirichlet/blob/master/example/3Tg.png "3Tg")
+![plop](https://github.com/xuod/dirichlet/blob/master/example/wt.png "wt")

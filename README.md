@@ -6,6 +6,6 @@ This is a python package forked from Eric Sue's [dirichlet](https://github.com/e
 Use 
 ---
 
-Download the repository as a zip file and unzip it. Then see the [example](https://github.com/xuod/dirichlet/blob/master/example/example.ipynb) jupyter notebook to run the test and produce plots.
+Download the repository as a zip file and unzip it. Then run the [example](https://github.com/xuod/dirichlet/blob/master/example/example.ipynb) jupyter notebook in the 'example' folder to perform the test and produce plots (if you have never used jupyter, see the [jupyter website](http://jupyter.org/)).
 
 <img width="20%" height="20%" src="https://github.com/xuod/dirichlet/blob/master/example/3Tg.png"> <img width="20%" height="20%" src="https://github.com/xuod/dirichlet/blob/master/example/wt.png">

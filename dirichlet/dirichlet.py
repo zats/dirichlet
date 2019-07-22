@@ -22,7 +22,8 @@ from numpy import (array, asanyarray, ones, arange, log, diag, vstack, exp,
         asarray, ndarray, zeros, isscalar, var)
 from numpy.linalg import norm
 import numpy as np
-from . import simplex
+# from . import simplex
+
 
 try:
     # python 2
@@ -166,9 +167,9 @@ def test_uniform(data, do_MWM_correction=True, verbose=True, label=None, tol=1e-
         else:
             print("# likelihood-ratio statistic (without MWM correction) = %g"%lr)
         print("# p-value = %g"%pval)
-        with np.printoptions(precision=3, suppress=False):
-            print("# MLE params under null hypothesis (uniformity)           :"+str(a0))
-            print("# MLE params under alternative hypothesis                 :"+str(a1))
+        # with np.printoptions(precision=3, suppress=False):
+        print("# MLE params under null hypothesis (uniformity)           :"+str(a0))
+        print("# MLE params under alternative hypothesis                 :"+str(a1))
 
     return (lr, pval, a1, a0)
 
@@ -247,7 +248,10 @@ def plot(data, label=None, do_test_uniform=True, do_MWM_correction=True, verbose
         plt.text(0, 1.12, label, va='center', ha='center', fontsize=12)
 
     if do_test_uniform:
-        plt.text(0, 1.05, ('$p_{\\rm Dirichlet}=%.2g$ '%pval)+p2star(pval), va='center', ha='center', fontsize=8)
+        try:
+            plt.text(0, 1.05, ('$p_{\\rm Dirichlet}=%.2g$ '%pval)+p2star(pval), va='center', ha='center', fontsize=8)
+        except ValueError:
+            plt.text(0, 1.05, ('$p_{\\rm Dirichlet}=%.2g$ '%pval), va='center', ha='center', fontsize=8)
 
     plt.axis('off')
 

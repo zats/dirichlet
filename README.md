@@ -10,7 +10,7 @@ Download the repository as a zip file and unzip it.
 
 ### With python
 
- We provide a jupyter notebook in the `example` subfolder to perform the test and produce plots, see[example.ipynb](https://github.com/xuod/dirichlet/blob/master/example/example.ipynb) (if you have never used jupyter, see the [jupyter website](http://jupyter.org/)).
+ We provide a jupyter notebook in the `example` subfolder to perform the test and produce plots, see [example.ipynb](https://github.com/xuod/dirichlet/blob/master/example/example.ipynb) (if you have never used jupyter, see the [jupyter website](http://jupyter.org/)).
 
 <img width="20%" height="20%" src="https://github.com/xuod/dirichlet/blob/master/example/3Tg.png"> <img width="20%" height="20%" src="https://github.com/xuod/dirichlet/blob/master/example/wt.png">
 

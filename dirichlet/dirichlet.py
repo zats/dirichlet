@@ -54,6 +54,8 @@ euler = -1*psi(1) # Euler-Mascheroni constant
 def _norm_rows(a):
     return a * 1. / np.sum(a, axis=1, keepdims=True)
 
+def _do_MWM_correction(lr,N):
+    return lr * 3./(3.+5.9*N**(-1.4))
 
 def test_same_distribution(D1, D2, method='meanprecision', maxiter=None):
     '''Test for statistical difference between observed proportions.

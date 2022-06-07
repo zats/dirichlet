@@ -4,7 +4,8 @@ __all__ = [
     'mle',
     'meanprecision',
     'loglikelihood',
-    'simplex'
+    'simplex',
+    'test_uniform'
 ]
 
 from .dirichlet import *
